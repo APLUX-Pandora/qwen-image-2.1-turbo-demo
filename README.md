@@ -40,16 +40,7 @@ This installs the SDK, the Web Demo and the Hugging Face CLI. To use only the SD
 
 ## 2. Get the model
 
-Find your device's SoC in the table. Each target uses the same three GGUF and safetensors files, so the download commands are shared. The SDK selects the matching target in `models/models.json`.
-
-| SoC | Device ID | Model folder | Bundled DSP library |
-| --- | --- | --- | --- |
-| QCS8550 | 603 | `models/` | Hexagon v73 |
-| QCS8625 | 702 | `models/` | Hexagon v75 |
-| QCS8275 (IQ8) | 675 | `models/` | Hexagon v75 |
-| QCS9075 (IQ9) | 676 | `models/` | Hexagon v75 |
-
-Use `hf download` to get the three files at their pinned upstream revisions.
+All supported devices use the same three model files. Download them to `models/` and verify the checksums:
 
 ```bash
 hf download Abiray/Qwen-Image-2.1-Turbo-GGUF qwen_image_2.1_turbo_Q4_0.gguf --revision 5a4d1964af2bd65111f5f241c65f5b96f0bdd65c --local-dir models
@@ -59,7 +50,7 @@ mv models/vae/qwen_image_2.1_vae_bf16.safetensors models/
 (cd models && sha256sum -c SHA256SUMS)
 ```
 
-Check [Model setup](docs/MODEL_SETUP.md) for the available targets, the DSP library requirements and the folder layout.
+See [Model setup](docs/MODEL_SETUP.md) for device details.
 
 ## 3. Run the Web Demo
 
