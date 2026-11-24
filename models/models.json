@@ -1,0 +1,74 @@
+{
+  "model": "Qwen-Image-2.1-Turbo",
+  "runtime": "ggml-hexagon",
+  "files": [
+    {
+      "role": "diffusion",
+      "path": "qwen_image_2.1_turbo_Q4_0.gguf",
+      "size_bytes": 4050934560,
+      "sha256": "060f94496486ce0002278afaac95137e027b63dee506562d47e5a8d90b30d26a",
+      "format": "gguf",
+      "repository": "Abiray/Qwen-Image-2.1-Turbo-GGUF",
+      "revision": "5a4d1964af2bd65111f5f241c65f5b96f0bdd65c",
+      "upstream_path": "qwen_image_2.1_turbo_Q4_0.gguf"
+    },
+    {
+      "role": "text_encoder",
+      "path": "Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",
+      "size_bytes": 4787333600,
+      "sha256": "d8c6a8e4c7c00a2502f0491e3b780ac5c1466fad23a1ad4b0beec019071edbc9",
+      "format": "gguf",
+      "repository": "bartowski/Qwen_Qwen3-VL-8B-Instruct-GGUF",
+      "revision": "6398fcccbd940691854d2cffd85b435ed8eee4ca",
+      "upstream_path": "Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf"
+    },
+    {
+      "role": "vae",
+      "path": "qwen_image_2.1_vae_bf16.safetensors",
+      "size_bytes": 675509688,
+      "sha256": "bb21f7473051e1ac368515dd3f2e15cd44d7a11748ee8823e1ddca3e4876b7c9",
+      "format": "safetensors",
+      "repository": "Comfy-Org/Qwen-Image-2.1",
+      "revision": "df94239739eef7205973a145ffa6f441f7b64e84",
+      "upstream_path": "vae/qwen_image_2.1_vae_bf16.safetensors"
+    }
+  ],
+  "targets": [
+    {
+      "soc": "QCS8550",
+      "folder": ".",
+      "files": [
+        "qwen_image_2.1_turbo_Q4_0.gguf",
+        "Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",
+        "qwen_image_2.1_vae_bf16.safetensors"
+      ]
+    },
+    {
+      "soc": "QCS9075",
+      "folder": ".",
+      "files": [
+        "qwen_image_2.1_turbo_Q4_0.gguf",
+        "Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",
+        "qwen_image_2.1_vae_bf16.safetensors"
+      ]
+    },
+    {
+      "soc": "QCS8625",
+      "folder": ".",
+      "files": [
+        "qwen_image_2.1_turbo_Q4_0.gguf",
+        "Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",
+        "qwen_image_2.1_vae_bf16.safetensors"
+      ]
+    },
+    {
+      "soc": "QCS8275",
+      "folder": ".",
+      "files": [
+        "qwen_image_2.1_turbo_Q4_0.gguf",
+        "Qwen_Qwen3-VL-8B-Instruct-Q4_0.gguf",
+        "qwen_image_2.1_vae_bf16.safetensors"
+      ]
+    }
+  ]
+}

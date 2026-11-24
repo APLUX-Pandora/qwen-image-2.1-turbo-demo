@@ -1,0 +1,11 @@
+Licensing index — Qwen-Image-2.1-Turbo / APLUX Pandora
+
+This distribution contains components under distinct terms. It does not apply one license to all materials.
+
+- Designated APLUX application code, examples, public C headers and Python bindings: Apache License 2.0. See the directory LICENSE files and LICENSES/Apache-2.0.txt.
+- Incorporated third-party source and binary portions, including stable-diffusion.cpp and GGML: their original grants and THIRD_PARTY_NOTICES.txt. Existing grants remain in force.
+- APLUX-owned proprietary SDK contributions, only where APLUX owns the applicable rights: the approved bilingual Pandora Model/SDK terms in LICENSES/. These terms do not relicense upstream material or revoke prior grants.
+- External Qwen diffusion/VAE weights: the unchanged Qwen Research License in LICENSES/Qwen-Research.txt, including its non-commercial restrictions. Model weights are not included in this binary/code delivery.
+- External Qwen3-VL text encoder: upstream Apache-2.0 terms.
+
+Read LICENSING.md for component scope and NOTICE for attribution. Full applicable texts accompany the distribution in LICENSES/.

@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools>=68", "wheel>=0.41"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pandora-qwen-image-2-1-turbo"
+version = "1.0.0"
+description = "Qwen Image Turbo Python pipeline for Linux AArch64 with Hexagon acceleration"
+requires-python = ">=3.10,<3.13"
+dependencies = ["Pillow>=10.4,<13"]
+license = {text = "Apache-2.0; bundled native components retain their respective terms."}

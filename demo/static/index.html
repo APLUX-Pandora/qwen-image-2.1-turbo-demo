@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qwen-Image-2.1-Turbo Board Demo</title>
+<link rel="icon" type="image/svg+xml" href="/static/pandora-mark.svg">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0f1115; --panel: #171a21; --panel-2: #1d212a; --line: #262b36; --line-2: #333a48;
+    --text: #e8eaef; --muted: #8b93a5; --faint: #5d6576;
+    --accent: #4f8cff; --accent-ink: #ffffff; --accent-soft: rgba(79, 140, 255, .14);
+    --warn: #f0b429; --ok: #3fb950; --err: #f26d6d;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.5 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Noto Sans CJK SC", sans-serif; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding-inline: 16px; padding-block: 8px 24px; display: flex; flex-direction: column; gap: 14px; }
+
+
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding-block: 10px 2px; }
+  .brand { display: flex; align-items: center; gap: 14px; margin-left: auto; flex: none; }
+  .brand img { display: block; flex: none; }
+  .brand .logo { height: 26px; width: auto; }
+  .brand .divider { width: 1px; height: 22px; background: var(--line); }
+  .brand .mark { width: 26px; height: 26px; }
+  .brand .name { font-size: 17px; font-weight: 700; color: var(--text); margin-left: -6px; }
+  header h1 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: .1px; }
+  header .sub { color: var(--muted); }
+  .chip { display: inline-flex; align-items: center; gap: 7px; padding: 3px 11px; border-radius: 999px;
+          border: 1px solid var(--line-2); color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+  .chip.busy { color: var(--accent); border-color: var(--accent); }
+  .chip.busy::before { background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+  .chip.queued { color: var(--warn); border-color: var(--warn); }
+  .chip.queued::before { background: var(--warn); }
+  @keyframes pulse { 50% { opacity: .3; } }
+
+  main { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 14px; align-items: stretch; }
+  @media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+  .controls { display: flex; flex-direction: column; gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 7px; }
+  .label { display: flex; align-items: baseline; gap: 8px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+  .label .val.over { color: var(--err); font-weight: 600; }
+  .label .val { margin-left: auto; text-transform: none; letter-spacing: 0; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  textarea { width: 100%; min-height: 150px; resize: vertical; background: var(--bg); color: var(--text); border: 1px solid var(--line);
+             border-radius: 8px; padding: 10px 12px; font: inherit; line-height: 1.55; }
+  textarea:focus, input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .hint { color: var(--faint); font-size: 12px; }
+  .examples { display: flex; flex-wrap: wrap; gap: 6px; }
+  .examples button { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--panel-2); }
+
+  button { background: var(--panel-2); color: var(--text); border: 1px solid var(--line-2); border-radius: 7px; padding: 7px 14px; font: inherit; cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--muted); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  button.primary:hover:not(:disabled) { filter: brightness(1.08); border-color: var(--accent); }
+
+  .seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: transparent; padding: 7px 4px; display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .seg button + button { border-left: 1px solid var(--line-2); }
+  .seg button small { color: var(--faint); font-size: 11px; }
+  .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+  .seg button[aria-pressed="true"] small { color: var(--accent); }
+
+  .ratios { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .ratio { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 2px 6px; border-radius: 8px; background: transparent; }
+  .ratio .shape { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
+  .ratio .shape i { display: block; border: 1.5px solid currentColor; border-radius: 2px; }
+  .ratio span { font-size: 11.5px; font-variant-numeric: tabular-nums; }
+  .ratio[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  @media (max-width: 460px) { .ratios { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+  .seed-row { display: flex; gap: 8px; align-items: center; }
+  .seed-row input[type=number] { flex: 1; min-width: 0; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 7px;
+                                 padding: 7px 10px; font: inherit; font-variant-numeric: tabular-nums; }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .toggle input { accent-color: var(--accent); }
+
+  .actions { display: flex; gap: 8px; }
+  .actions .primary { flex: 1; padding-block: 10px; font-size: 15px; }
+  .fixed { color: var(--faint); font-size: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+
+  .stage { display: flex; flex-direction: column; gap: 12px; min-height: 100%; }
+  .canvas { position: relative; flex: 1 1 auto; min-height: 420px; display: flex; align-items: center; justify-content: center;
+            background: #0a0c10; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .canvas img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; position: absolute; inset: 0; margin: auto;
+                opacity: 1; transition: opacity .6s ease; }
+  .canvas img.enter { opacity: 0; }
+  .frame span { position: relative; padding: 2px 8px; border-radius: 999px; background: rgba(10, 12, 16, .72); }
+  .canvas .frame { position: absolute; border: 1px dashed var(--line-2); border-radius: 4px; display: flex; align-items: center;
+                   justify-content: center; color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .progress { display: flex; flex-direction: column; gap: 10px; }
+  .bar { position: relative; height: 10px; border-radius: 5px; background: var(--panel-2); border: 1px solid var(--line-2); overflow: hidden; }
+  .bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); border-radius: 5px; transition: width .45s ease; }
+  .bar.run i { background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, .28) 50%, rgba(255, 255, 255, 0) 100%);
+               background-size: 160px 100%; background-repeat: no-repeat; animation: sheen 1.4s linear infinite; }
+  @keyframes sheen { from { background-position: -160px 0; } to { background-position: 600px 0; } }
+  .loading { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+  .spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--line-2); border-top-color: var(--accent);
+             animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .pinfo { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+  .phases { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--faint); }
+  .phase { display: inline-flex; align-items: center; gap: 6px; }
+  .phase.now { color: var(--text); }
+  .phase.done { color: var(--ok); }
+  .phase + .phase::before { content: "›"; color: var(--faint); margin-right: 6px; }
+  .pinfo .row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pinfo .row .t { margin-left: auto; color: var(--text); white-space: nowrap; }
+  .pinfo .row .ok { color: var(--ok); font-weight: 600; }
+
+  .stats { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .stats b { color: var(--text); font-weight: 500; }
+  .pfoot { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; padding-top: 10px;
+           border-top: 1px solid var(--line); }
+  .pfoot .stats { flex: 1 1 260px; }
+  .pactions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pactions button { padding: 6px 12px; font-size: 13px; }
+  .history h2 { margin: 0 0 10px; font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+  .strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .thumb { flex: none; width: 84px; padding: 0; background: transparent; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; text-align: left; }
+  .thumb img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+  .thumb span { display: block; padding: 4px 7px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .thumb[aria-current="true"] { border-color: var(--accent); }
+
+  .toast[hidden] { display: none; }
+  [hidden] { display: none !important; }
+  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--panel-2);
+           border: 1px solid var(--line-2); border-radius: 8px; padding: 8px 14px; font-size: 13px; box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }
+  .err { color: var(--err); font-size: 12.5px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Qwen-Image-2.1-Turbo</h1>
+    <span class="sub">8-step text-to-image on the Hexagon NPU</span>
+    <span class="chip" id="status" role="status">NPU idle</span>
+    <div class="brand"><img class="logo" src="/static/logo.png" alt="APLUX"><span class="divider"></span>
+      <img class="mark" src="/static/pandora-mark.svg" alt=""><span class="name">Pandora</span></div>
+  </header>
+
+  <main>
+    <section class="panel controls" aria-label="Generation settings">
+      <div class="field">
+        <label class="label" for="prompt">Prompt <span class="val" id="promptLen"></span></label>
+        <textarea id="prompt" spellcheck="false" placeholder="Describe the picture: subject, setting, light, style, and any text that should appear in it."></textarea>
+        <div class="examples" id="examples" aria-label="Example prompts"></div>
+        <div class="hint" id="promptHint">Long, detailed prompts work best. Text in quotes is rendered into the image; Chinese and English both work.</div>
+      </div>
+
+      <div class="field">
+        <span class="label">Resolution <span class="val" id="sizeVal"></span></span>
+        <div class="seg" id="tiers" role="group" aria-label="Resolution"></div>
+        <div class="hint" id="tierHint"></div>
+      </div>
+
+      <div class="field">
+        <span class="label">Aspect ratio</span>
+        <div class="ratios" id="ratios" role="group" aria-label="Aspect ratio"></div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="seed">Seed</label>
+        <div class="seed-row">
+          <input type="number" id="seed" min="0" max="2147483647" step="1" value="42" aria-label="Seed">
+          <label class="toggle"><input type="checkbox" id="randomSeed" checked> New seed each run</label>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="generate">Generate</button>
+        <button id="cancel" hidden>Cancel</button>
+        <button id="retry" hidden>Retry connection</button>
+        <button id="reload" hidden>Reload model</button>
+      </div>
+      <div class="err" id="error" hidden></div>
+      <div class="fixed">Sampling uses the model's own 8-step schedule with CFG 1, as on the model card. Neither is adjustable.</div>
+    </section>
+
+    <section class="stage" aria-label="Result">
+      <div class="canvas" id="canvas">
+        <div class="frame" id="frame"><div class="loading" id="loading" hidden><div class="spinner"></div><span id="loadingText">Generating…</span></div><span id="frameLabel"></span></div>
+        <img id="result" alt="" hidden>
+      </div>
+
+      <div class="panel progress" aria-label="Progress">
+        <div class="pinfo">
+          <div class="phases" id="phases">
+            <span class="phase" data-p="queue">Waiting for NPU</span>
+            <span class="phase" data-p="encode">Encoding prompt</span>
+            <span class="phase" data-p="denoise">Denoising</span>
+            <span class="phase" data-p="decode">Decoding image</span>
+          </div>
+          <div class="row"><span id="phaseText">Ready. Every image takes 8 denoising steps.</span><span class="t" id="elapsed"></span></div>
+        </div>
+        <div class="bar" id="bar" role="progressbar" aria-label="Denoising steps" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="barFill"></i></div>
+        <div class="pfoot" id="actions" hidden>
+          <div class="stats" id="stats"></div>
+          <div class="pactions">
+            <button id="download">Download PNG</button>
+            <button id="reuse">Use these settings</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel history">
+        <h2>This session</h2>
+        <div class="strip" id="strip"></div>
+        <div class="hint" id="historyEmpty">Images you generate while this page is open appear here.</div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// Qwen-Image-2.1-Turbo board demo page. Talks to demo_server.py: GET /api/info, POST /api/generate, POST /api/cancel,
+// Server-Sent Events on /api/events (queue, phase, step, done, error, cancelled).
+const $ = id => document.getElementById(id);
+const TIER_LABEL = { 512: "512", 1024: "1K", 1536: "1.5K", 2048: "2K" };
+const TIER_NOTE = { 512: "fast, simple subjects", 1024: "recommended", 1536: "more detail" };
+// Sizes this device cannot generate: why, and where they run.
+const TIER_ELSEWHERE = { 2048: ["Unavailable", "2K is not supported by this device configuration"] };
+const RATIO_SHAPE = { "1:1": [1, 1], "4:3": [4, 3], "3:4": [3, 4], "3:2": [3, 2], "2:3": [2, 3], "16:9": [16, 9], "9:16": [9, 16] };
+// Built-in examples: [button label, prompt, resolution tier, aspect ratio]; they run with seed 42.
+const EXAMPLES = [
+  ["Robot · 512", "A cute little robot made of glossy white ceramic with soft orange rubber joints, sitting on a light oak desk and holding a tiny potted succulent in both hands. Big round glowing cyan eyes, head slightly tilted, a curious and friendly expression. Studio product photography, soft window light from the left, gentle contact shadow, clean pastel mint background, shallow depth of field, centered composition, crisp details on the ceramic surface.", 512, "1:1"],
+  ["Hangzhou poster · 1K", "A vintage travel poster for the city of Hangzhou in a refined screen-print style. At the top, a large bold title reads \"杭州\" in elegant Chinese brush calligraphy, and directly below it the word \"HANGZHOU\" in wide, clean capital letters. The scene shows West Lake at sunset: the Leifeng Pagoda on a green hill on the left, layered misty mountains in the distance, a stone arch bridge with willow trees, large lotus leaves and pink lotus flowers in the foreground, and a small wooden boat with a boatman gliding across the calm water. Limited palette of teal, coral, warm gold and cream, flat shapes with subtle paper grain and halftone texture, balanced composition with generous margins. At the bottom, a thin line of small text reads \"WEST LAKE · SPRING 2026\".", 1024, "3:4"],
+  ["Rice terraces · 1.5K", "A breathtaking wide-angle landscape photograph of the Yuanyang rice terraces in Yunnan at sunrise. Hundreds of curved terraces filled with water step down the mountainside, their mirror-like surfaces reflecting a pink, orange and golden sky. Soft white mist drifts through the valleys between the terraces, and distant blue mountain ridges fade into the haze. On a ridge in the middle ground stands a small village of wooden houses with thatched mushroom-shaped roofs, thin smoke rising from the chimneys. Two farmers in conical hats walk along a narrow earthen path between the terraces, tiny in the vast scene. Warm low-angle sunlight, rich color, ultra-detailed, crisp textures, cinematic composition, professional landscape photography.", 1536, "16:9"],
+];
+const EXAMPLE_SEED = 42;
+const DEFAULT_EXAMPLE = 1;  // shown on the first visit
+
+let INFO = null;
+const state = { tier: 1024, ratio: "1:1", job: null, history: [], current: null, t0: 0, tick: null };
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("qwen-image." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("qwen-image." + k, JSON.stringify(v)); } catch {} },
+};
+
+function sizeOf(tier, ratio) { return INFO.sizes[tier][ratio]; }
+function fmtDur(s) { return s < 90 ? `${Math.round(s)} s` : `${Math.floor(s / 60)} min ${String(Math.round(s % 60)).padStart(2, "0")} s`; }
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 3000); }
+function setStatus(cls, text) { const s = $("status"); s.className = "chip " + cls; s.textContent = text; }
+function showError(msg) { $("error").textContent = msg; $("error").hidden = !msg; }
+
+function buildControls() {
+  $("examples").innerHTML = ""; $("examples").hidden = EXAMPLES.length === 0;
+  EXAMPLES.forEach((ex, k) => {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = ex[0];
+    b.title = `${TIER_LABEL[ex[2]]}, ${ex[3]}, seed ${EXAMPLE_SEED}`;
+    b.onclick = () => useExample(k);
+    $("examples").append(b);
+  });
+  $("tiers").innerHTML = "";
+  INFO.all_tiers.forEach(t => {
+    const b = document.createElement("button"); b.type = "button"; b.dataset.t = t;
+    const elsewhere = TIER_ELSEWHERE[t] || ["not on this device", "This size needs more NPU memory than this device has"];
+    b.innerHTML = `${TIER_LABEL[t] || t}<small>${INFO.tiers.includes(t) ? TIER_NOTE[t] || "" : elsewhere[0]}</small>`;
+    b.disabled = !INFO.tiers.includes(t);
+    if (b.disabled) b.title = elsewhere[1];
+    b.onclick = () => { state.tier = t; store.set("tier", t); refresh(); };
+    $("tiers").append(b);
+  });
+  $("ratios").innerHTML = "";
+  INFO.aspect_ratios.forEach(name => {
+    const [a, c] = RATIO_SHAPE[name] || [1, 1], k = 22 / Math.max(a, c);
+    const b = document.createElement("button"); b.type = "button"; b.className = "ratio"; b.dataset.r = name;
+    b.innerHTML = `<span class="shape"><i style="width:${Math.round(a * k)}px;height:${Math.round(c * k)}px"></i></span><span>${name}</span>`;
+    b.onclick = () => { state.ratio = name; store.set("ratio", name); refresh(); };
+    $("ratios").append(b);
+  });
+}
+
+// An example fills in its prompt, size and seed, so Generate reproduces the example image.
+function useExample(k) {
+  const [, text, tier, ratio] = EXAMPLES[k];
+  $("prompt").value = text; onPrompt();
+  if (INFO.tiers.includes(tier)) { state.tier = tier; store.set("tier", tier); }
+  state.ratio = ratio; store.set("ratio", ratio);
+  $("seed").value = EXAMPLE_SEED; $("randomSeed").checked = false;
+  refresh();
+}
+
+function refresh() {
+  [...$("tiers").children].forEach(b => b.setAttribute("aria-pressed", +b.dataset.t === state.tier));
+  [...$("ratios").children].forEach(b => b.setAttribute("aria-pressed", b.dataset.r === state.ratio));
+  const [w, h] = sizeOf(state.tier, state.ratio);
+  $("sizeVal").textContent = `${w} × ${h}`;
+  const e = INFO.estimates[state.tier];
+  $("tierHint").textContent = (e ? `About ${fmtDur(e.encode_s + INFO.n_steps * e.step_s + e.decode_s)} per image at this size. ` : "")
+    + `One image at a time; other requests wait their turn.`;
+  if (!state.current && !state.job) drawFrame(w, h);
+  showTokens();
+}
+
+function drawFrame(w, h) {
+  const c = $("canvas"), f = $("frame"), box = c.getBoundingClientRect();
+  const k = Math.min((box.width - 40) / w, (Math.max(box.height, 420) - 40) / h);
+  f.style.width = `${w * k}px`; f.style.height = `${h * k}px`; $("frameLabel").textContent = `${w} × ${h}`;
+  f.hidden = false; $("result").hidden = true; $("actions").hidden = true;
+}
+
+// Loading state in the image frame while a request is queued or running.
+function showLoading(on, text) {
+  $("loading").hidden = !on; $("frameLabel").hidden = on;
+  if (text) $("loadingText").textContent = text;
+}
+
+// Prompt length in tokens (counted by the engine's tokenizer on the board); each tier has its own limit.
+let connected = false, modelReady = false, loadingModel = false, reloadNeeded = false, eventStream = null, initializing = false, controlsReady = false, connectionErrorMessage = "";
+const tok = { n: 0, timer: null, seq: 0 };
+function onPrompt() {
+  store.set("prompt", $("prompt").value);
+  clearTimeout(tok.timer);
+  tok.timer = setTimeout(countTokens, 250);
+}
+async function countTokens() {
+  if (!INFO || !connected) return;
+  const seq = ++tok.seq;
+  try {
+    const r = await fetch("/api/tokens", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: $("prompt").value.trim() }) });
+    const j = await r.json();
+    if (!r.ok || !Number.isInteger(j.tokens) || j.tokens < 0) throw new Error(j.error || "Token request failed");
+    if (seq === tok.seq) { tok.n = j.tokens; showTokens(); }
+  } catch (error) { connectionFailed(error); }
+}
+function showTokens() {
+  const cap = INFO.max_tokens[state.tier], over = tok.n > cap;
+  $("promptLen").textContent = `${tok.n} / ${cap} tokens`;
+  $("promptLen").classList.toggle("over", over);
+  $("generate").disabled = over || !!state.job || !connected || !modelReady;
+  $("promptHint").textContent = over
+    ? `Too long for ${TIER_LABEL[state.tier]}: shorten the prompt${state.tier > 1024 ? " or choose 1K" : ""}. Longer prompts also take longer.`
+    : "Long, detailed prompts work best. Text in quotes is rendered into the image; Chinese and English both work.";
+  $("promptHint").classList.toggle("err", over);
+}
+
+function setPhase(p, text) {
+  const order = ["queue", "encode", "denoise", "decode", "done"];
+  [...$("phases").children].forEach(el => {
+    const i = order.indexOf(el.dataset.p), j = p ? order.indexOf(p) : -1;
+    el.className = "phase" + (i < j ? " done" : i === j ? " now" : "");
+  });
+  $("phaseText").textContent = text;
+}
+
+// Progress bar: each finished denoising step is 1/8 (12.5 %).
+function setSteps(done, running) {
+  const pct = 100 * done / INFO.n_steps;
+  $("barFill").style.width = `${pct}%`;
+  $("bar").classList.toggle("run", !!running);
+  $("bar").setAttribute("aria-valuenow", String(pct));
+}
+const pctText = done => `${+(100 * done / INFO.n_steps).toFixed(1)} %`;
+
+function idleProgress() {
+  setSteps(0, false); setPhase("", "Ready. Every image takes 8 denoising steps."); $("elapsed").textContent = "";
+  $("actions").hidden = true;
+}
+
+async function generate() {
+  if (!connected || !modelReady || state.job) return;
+  showError("");
+  const prompt = $("prompt").value.trim();
+  if (!prompt) return showError("Write a prompt first, or pick an example.");
+  if ($("randomSeed").checked) $("seed").value = Math.floor(Math.random() * (INFO.max_seed + 1));
+  const seed = +$("seed").value;
+  if (!Number.isInteger(seed) || seed < 0 || seed > INFO.max_seed) return showError(`The seed must be a whole number from 0 to ${INFO.max_seed}.`);
+  $("generate").disabled = true;
+  let res;
+  try {
+    const r = await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, tier: state.tier, ratio: state.ratio, seed }) });
+    res = await r.json();
+    if (!r.ok) throw new Error(res.error || r.statusText);
+  } catch (e) {
+    await refreshInfo();
+    if (controlsReady) showTokens();
+    return showError(`Could not start: ${e.message}`);
+  }
+  state.job = { id: res.id, prompt, seed, tier: state.tier, ratio: state.ratio, w: res.width, h: res.height };
+  state.current = null;
+  drawFrame(res.width, res.height); showLoading(true, "Generating…");
+  $("cancel").hidden = false;
+  setSteps(0, false); renderHistory();
+  state.t0 = performance.now(); clearInterval(state.tick);
+  state.tick = setInterval(() => $("elapsed").textContent = `${((performance.now() - state.t0) / 1000).toFixed(1)} s`, 200);
+  setPhase("queue", res.ahead > 0 ? `Waiting for the NPU (${res.ahead} ahead)` : "Starting");
+  recoverJob();
+}
+
+function finishJob() {
+  clearInterval(state.tick); showLoading(false); state.job = null;
+  $("generate").disabled = tok.n > INFO.max_tokens[state.tier] || !connected || !modelReady; $("cancel").hidden = true;
+}
+
+function onEvent(ev) {
+  if (ev.type === "info") { applyService(ev); updateStatus(ev.busy, ev.queued); return; }
+  if (ev.type === "queue") {
+    if ("ready" in ev) applyService(ev);
+    updateStatus(ev.ids.length > 0, Math.max(0, ev.ids.length - 1));
+    if (state.job) {
+      const ahead = ev.ids.indexOf(state.job.id);
+      if (ahead > 0) { setPhase("queue", `Waiting for the NPU (${ahead} ahead)`); showLoading(true, "Waiting for the NPU…"); }
+    }
+    return;
+  }
+  if (!state.job || ev.id !== state.job.id) return;
+  switch (ev.type) {
+    case "start": state.t0 = performance.now(); setPhase("encode", "Encoding the prompt"); showLoading(true, "Generating…"); break;
+    case "phase":
+      if (ev.phase === "denoise") { setPhase("denoise", `Denoising, step 1 of ${INFO.n_steps} · ${pctText(0)}`); setSteps(0, true); }
+      else if (ev.phase === "decode") { setPhase("decode", "Decoding the image"); setSteps(INFO.n_steps, false); }
+      break;
+    case "decode_step": setPhase("decode", `Decoding the image, tile ${ev.step} of ${ev.n_steps}`); break;
+    case "step":
+      setSteps(ev.step, ev.step < INFO.n_steps);
+      if (ev.step < INFO.n_steps) setPhase("denoise", `Denoising, step ${ev.step + 1} of ${INFO.n_steps} · ${pctText(ev.step)}`);
+      break;
+    case "done": {
+      const j = state.job, item = { ...j, src: ev.image, enc: ev.encode_s, den: ev.denoise_s, dec: ev.decode_s, tot: ev.wall_s };
+      finishJob(); state.history.unshift(item); show(item); break;
+    }
+    case "error": finishJob(); idleProgress(); showError(`Generation failed: ${ev.message}`); refresh(); refreshInfo(); break;
+    case "cancelled": finishJob(); idleProgress(); toast("Cancelled."); refresh(); break;
+  }
+}
+
+function updateStatus(busy, queued) {
+  if (!connected) return setStatus("queued", "Device unavailable");
+  if (loadingModel) return setStatus("queued", "Loading model");
+  if (reloadNeeded) return setStatus("queued", "Model needs reloading");
+  if (!busy) setStatus("", "NPU idle");
+  else setStatus("busy", queued > 0 ? `Generating · ${queued} waiting` : "Generating");
+}
+
+function show(item) {
+  state.current = item;
+  $("frame").hidden = true;
+  const img = $("result");
+  img.classList.add("enter"); img.onload = () => requestAnimationFrame(() => img.classList.remove("enter"));
+  img.src = item.src; img.alt = item.prompt.slice(0, 160); img.hidden = false;
+  setSteps(INFO.n_steps, false);
+  setPhase("done", "");
+  $("phaseText").innerHTML = `<span class="ok">✓ Done</span> ${item.w} × ${item.h}, seed ${item.seed}`;
+  $("elapsed").textContent = item.tot == null ? "" : fmtDur(item.tot);
+  const t = v => v == null ? "–" : `${v.toFixed(1)} s`;
+  $("stats").innerHTML = `Prompt <b>${t(item.enc)}</b> · Denoising <b>${t(item.den)}</b> (${INFO.n_steps} steps) · Decoding <b>${t(item.dec)}</b>`;
+  $("actions").hidden = false;
+  renderHistory();
+}
+
+function renderHistory() {
+  const s = $("strip"); s.innerHTML = "";
+  $("historyEmpty").hidden = state.history.length > 0;
+  state.history.forEach(it => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "thumb";
+    b.setAttribute("aria-current", it === state.current);
+    b.innerHTML = `<img alt="" loading="lazy" src="${it.src}"><span>${it.w}×${it.h} · ${it.seed}</span>`;
+    b.onclick = () => { if (!state.job) show(it); };
+    s.append(b);
+  });
+}
+
+async function recoverJob() {
+  const id = state.job?.id;
+  if (!id) return;
+  try {
+    const r = await fetch(`/api/job/${encodeURIComponent(id)}`);
+    const ev = await r.json();
+    if (state.job?.id !== id) return;
+    if (r.status === 404) {
+      finishJob(); idleProgress(); refresh();
+      showError("This job is no longer available. Please generate again.");
+    } else if (r.ok) onEvent(ev);
+  } catch { /* EventSource reconnect will retry recovery. */ }
+}
+
+function connectionFailed(error) {
+  connected = false; modelReady = false;
+  $("retry").hidden = false; $("generate").disabled = true;
+  setStatus("queued", "Device unavailable");
+  connectionErrorMessage = `Connection failed: ${error.message || error}. Retry when the device is available.`;
+  showError(connectionErrorMessage);
+}
+async function fetchInfo() {
+  const response = await fetch("/api/info");
+  if (!response.ok) throw new Error(`Device returned HTTP ${response.status}`);
+  const info = await response.json();
+  if (!Array.isArray(info.tiers) || !Array.isArray(info.aspect_ratios) || !info.sizes || !info.max_tokens || typeof info.ready !== "boolean")
+    throw new Error("Invalid device response");
+  return info;
+}
+function applyService(info) {
+  if (connectionErrorMessage && $("error").textContent === connectionErrorMessage) showError("");
+  connectionErrorMessage = "";
+  connected = true; modelReady = !!info.ready; reloadNeeded = !!info.reload_required; loadingModel = !!info.loading;
+  $("retry").hidden = true; $("reload").hidden = !reloadNeeded && !loadingModel;
+  $("reload").disabled = loadingModel || !!state.job;
+  if (controlsReady) showTokens();
+}
+async function refreshInfo() {
+  try { const info = await fetchInfo(); applyService(info); updateStatus(info.busy, info.queued); }
+  catch (error) { connectionFailed(error); }
+}
+function connect() {
+  if (eventStream) eventStream.close();
+  const es = eventStream = new EventSource("/api/events");
+  es.onopen = () => { refreshInfo(); recoverJob(); };
+  es.onmessage = m => { try { onEvent(JSON.parse(m.data)); } catch (error) { connectionFailed(error); } };
+  es.onerror = () => { connectionFailed(new Error("Event stream disconnected")); };
+}
+async function init() {
+  if (initializing) return;
+  initializing = true; $("retry").disabled = true;
+  try {
+    INFO = await fetchInfo(); applyService(INFO);
+    if (!controlsReady) {
+      const tier = store.get("tier", 1024), ratio = store.get("ratio", "1:1");
+      state.tier = INFO.tiers.includes(tier) ? tier : INFO.tiers[0];
+      state.ratio = INFO.aspect_ratios.includes(ratio) ? ratio : "1:1";
+      const saved = store.get("prompt", null);
+      if (!$("prompt").value) $("prompt").value = saved || "";
+      $("seed").max = INFO.max_seed;
+      buildControls(); controlsReady = true; idleProgress(); renderHistory();
+      if (!saved && !$("prompt").value && EXAMPLES.length) useExample(DEFAULT_EXAMPLE);
+    }
+    showError(""); refresh(); onPrompt(); connect(); recoverJob(); updateStatus(INFO.busy, INFO.queued);
+  } catch (error) { connectionFailed(error); }
+  finally { initializing = false; $("retry").disabled = false; }
+}
+async function reloadModel() {
+  if (state.job || loadingModel) return;
+  loadingModel = true; modelReady = false; $("reload").disabled = true; showTokens(); updateStatus(false, 0);
+  try {
+    const response = await fetch("/api/reload", {method:"POST", headers:{"Content-Type":"application/json"}, body:"{}"});
+    const info = await response.json();
+    if (!response.ok) throw new Error(info.error || `HTTP ${response.status}`);
+    applyService(info); showError(""); updateStatus(info.busy, info.queued); onPrompt();
+  } catch (error) { loadingModel = false; await refreshInfo(); showError(error.message); }
+}
+
+$("retry").onclick = init;
+$("reload").onclick = reloadModel;
+$("generate").onclick = generate;
+$("cancel").onclick = () => { if (state.job) fetch("/api/cancel", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: state.job.id }) }); };
+$("prompt").addEventListener("input", onPrompt);
+$("seed").addEventListener("input", () => { $("randomSeed").checked = false; });  // a typed seed is meant to be used
+$("prompt").addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !state.job) generate(); });
+$("download").onclick = () => {
+  const it = state.current; if (!it) return;
+  const a = document.createElement("a"); a.href = it.src; a.download = `text-to-image-${it.w}x${it.h}-seed${it.seed}.png`; a.click();
+};
+$("reuse").onclick = () => {
+  const it = state.current; if (!it) return;
+  $("prompt").value = it.prompt; onPrompt(); $("seed").value = it.seed; $("randomSeed").checked = false;
+  state.tier = it.tier; state.ratio = it.ratio; refresh(); toast("Settings restored. The same seed gives the same image.");
+};
+window.addEventListener("resize", () => {
+  if (!INFO) return;
+  if (state.job) drawFrame(state.job.w, state.job.h); else if (!state.current) refresh();
+});
+init();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+Qwen-Image-2.1-Turbo demo — APLUX Pandora
+
+Upstream model: Qwen/Qwen-Image-2.1-Turbo. Copyright (c) 2026 Hangzhou Tongyi Laboratory Technology Co., Ltd. All Rights Reserved. Qwen Research License; weights are external. Text encoder: Qwen3-VL-8B-Instruct, Apache-2.0. See docs/MODEL_SETUP.md for exact external repositories and revisions.
+
+Native SDK incorporates stable-diffusion.cpp (Copyright (c) 2023 leejet) and GGML (Copyright (c) 2023-2024 The ggml authors), MIT, with project Hexagon optimization and lifecycle modifications. Full notices for bundled portions accompany this delivery in THIRD_PARTY_NOTICES.txt. Qualcomm SDK, board FastRPC/driver and system runtime are not redistributed.
+
+The native SDK library libqwen_image.so embeds tokenizer data from OpenAI (CLIP and gpt-oss), the Qwen Team (Qwen2-family), Mistral AI (Tekken), and Google (T5, UMT5, Gemma 2 and Gemma 3). See THIRD_PARTY_NOTICES.txt for sources, copyright attribution, and license terms. The Gemma tokenizer data is subject to the use restrictions in Section 3.2 of the included Gemma Terms of Use.
+
+Gemma is provided under and subject to the Gemma Terms of Use found at gemma.ai/resources/terms
+
+Apache-2.0 designations cover the application, examples, C interface header and Python binding; see their directory LICENSE. Pandora terms apply only within the rights boundary in LICENSING.md. Existing upstream and prior license grants remain in force.

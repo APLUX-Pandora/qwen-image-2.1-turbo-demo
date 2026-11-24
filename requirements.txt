@@ -1,0 +1,2 @@
+./sdk
+huggingface_hub>=1.0,<2

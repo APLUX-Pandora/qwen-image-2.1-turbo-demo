@@ -1,0 +1,15 @@
+.venv*/
+__pycache__/
+*.pyc
+*.egg-info/
+sdk/build/
+out/
+out.png
+examples/c/generate
+examples/cpp/generate
+models/.cache/
+models/vae/
+c.ppm
+cpp.ppm
+models/**/*.gguf
+models/**/*.safetensors
