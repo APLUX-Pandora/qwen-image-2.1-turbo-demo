@@ -9,7 +9,9 @@ Generate images from text on a compatible device using the GGML Hexagon backend.
 
 Based on [Qwen-Image-2.1-Turbo](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo).
 
-**Demo recording:** reserved for a post-release recording.
+**Demo recording:**
+
+https://github.com/user-attachments/assets/218f43db-0406-450d-8a78-5e1d0621f677
 
 ## 1. Install
 
